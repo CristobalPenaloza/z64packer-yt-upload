@@ -1,0 +1,70 @@
+name: 'Z64 YouTube Upload'
+description: 'Action for uploading previews of Z64 Music Packers to YouTube'
+branding:
+  icon: 'music'
+  color: 'gray-dark'
+inputs:
+  yt_client_secrets:
+    description: 'The YouTube client_secrets.json file on base64 format.'
+    required: true
+  yt_request_token:
+    description: 'The YouTube request.token file on base64 format'
+    required: true
+  background_image:
+    description: 'A path or URL to a background image to use for the video'
+    required: true
+    
+runs:
+  using: "composite"
+  steps:
+    - name: Setup YouTube Uploader
+      uses: AnimMouse/setup-youtubeuploader@v2
+      with:
+        client_secrets: ${{ inputs.yt_client_secrets }}
+        request_token: ${{ inputs.yt_request_token }}
+  
+    - name: Checkout current branch
+      uses: actions/checkout@v6
+
+    - name: Copy scripts to working folder
+      run: |
+        echo "Copying scripts to working folder..."
+        mkdir -p z64packer
+        cp -r $GITHUB_ACTION_PATH/src/* z64packer/
+      shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+
+    - name: Install Python dependencies
+      uses: py-actions/py-dependency-install@v4
+      with:
+        path: "z64packer/z64_yt_upload_python_requirements.txt"
+
+    - name: Create and upload YouTube video
+      run: |
+        echo "Creating and uploading video..."
+        cd z64packer
+        python z64_video_maker.py --background_image $BACKGROUND_IMAGE
+        youtubeuploader -debug -filename "result.mp4" -metaJSON "metadata.json" -metaJSONout "metadata_out.json"
+        python z64_video_maker.py --mode "REGISTER_VIDEO"
+        cd ..
+      shell: bash
+      env:
+        BACKGROUND_IMAGE: ${{ inputs.background_image }}
+        
+    - name: Delete artifacts and commit changes
+      run: |
+        echo "Deleting artifacts and commiting changes..."
+        rm z64packer/{z64_video_maker.py,z64_yt_upload_python_requirements.txt,Montserrat-Bold.ttf,Montserrat-Regular.ttf,metadata.json,metadata_out.json,result.mp4,result.png,song.txt,vid_audio.mp3} || true
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.email "<>"
+        git add -A
+        git commit -m "Z64 YouTube Upload for ${{ github.sha }}"
+        git pull
+        git push
+      shell: bash
