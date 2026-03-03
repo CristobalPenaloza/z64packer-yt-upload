@@ -1,0 +1,6 @@
+soundfile
+pyloudnorm
+numpy
+requests
+pillow
+moviepy
