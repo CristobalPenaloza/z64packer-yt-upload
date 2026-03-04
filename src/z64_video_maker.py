@@ -137,7 +137,7 @@ def create_thumbnail(title, subtitle, background_image, logo_url):
 
     draw = ImageDraw.Draw(img)
     # Prepare the title
-    title_size = (img.height / 13)
+    title_size = (img.height / 14)
     title_font = ImageFont.truetype(bold_font, size=title_size)
     title_lines = textwrap.wrap(title, 16) # 9 ems
     title_total_height = title_size * len(title_lines)
