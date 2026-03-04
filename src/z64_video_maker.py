@@ -4,6 +4,7 @@ import json
 import soundfile as sf
 import pyloudnorm as pyln
 import numpy as np
+import librosa
 import requests
 from io import BytesIO
 import textwrap
@@ -11,7 +12,6 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from moviepy import ImageClip, AudioFileClip
 
 # Variables from workflow
-#background_path = "1200px-MM_Japas's_Room.png" # https://cdn.wikimg.net/en/zeldawiki/images/thumb/a/af/MM_Japas's_Room.png/1200px-MM_Japas's_Room.png
 bold_font = "Montserrat-Bold.ttf"
 regular_font = "Montserrat-Regular.ttf"
 
@@ -107,18 +107,22 @@ def create_thumbnail(title, subtitle, background_image, logo_url):
         img = Image.open(BytesIO(background_response.content)).convert("RGBA")
     else: img = Image.open(background_image).convert("RGBA")
     
-    half_w = int(img.width / 2)
+    half_w = int(img.width * 0.45) # <- The middle point, a bit to the left: smaller logo, longer text
     half_h = int(img.height / 2)
     padding = 75
 
     # Blur the background and darken it, so the text and logo pop more
     img = img.filter(ImageFilter.GaussianBlur(radius=6))
-    img = ImageEnhance.Brightness(img).enhance(0.8)
+    img = ImageEnhance.Brightness(img).enhance(0.7)
 
     # Download the game logo
     logo_response = requests.get(logo_url, headers=headers)
     logo_response.raise_for_status()
     logo = Image.open(BytesIO(logo_response.content)).convert("RGBA")
+
+    # Crop all transparent borders
+    bbox = logo.getbbox()
+    logo = logo.crop(bbox)
     
     # Resize to half the size of the background, considering the space for the padding on both sides
     logo_max_w = half_w - (padding * 2)
@@ -139,7 +143,7 @@ def create_thumbnail(title, subtitle, background_image, logo_url):
     title_total_height = title_size * len(title_lines)
 
     # Prepare the subtitle
-    subtitle_size = title_size / 2
+    subtitle_size = title_size * 0.55
     subtitle_font = ImageFont.truetype(regular_font, size=subtitle_size)
     subtitle_lines = textwrap.wrap(subtitle, 32) # 18 ems
     subtitle_total_height = subtitle_size * len(subtitle_lines)
@@ -172,11 +176,51 @@ def create_thumbnail(title, subtitle, background_image, logo_url):
 def create_video(audio_path):
     normalized_audio = normalize_youtube_audio(audio_path)
     audio_clip = AudioFileClip(normalized_audio)
-    image_clip = ImageClip("result.png")
-    image_clip = image_clip.with_duration(audio_clip.duration)
-    image_clip = image_clip.with_fps(24)
+    background_base = Image.open("result.png").convert("RGBA")
 
-    video_clip = image_clip.with_audio(audio_clip)
+    DURATION = audio_clip.duration
+    FPS = 30
+    N_BARS = 40
+    HEIGHT = background_base.height
+    WIDTH = background_base.width
+
+    # Do audio analysis
+    y, sr = librosa.load(normalized_audio, duration=DURATION)
+    stft = np.abs(librosa.stft(y, n_fft=2048, hop_length=512))
+    spectrogram = librosa.amplitude_to_db(stft, ref=np.max)
+    freq_data = np.array([np.mean(chunk, axis=0) for chunk in np.array_split(spectrogram, N_BARS + 1)]) # +1 bar to fill up screen!
+    freq_data = (freq_data - freq_data.min()) / (freq_data.max() - freq_data.min() + 1e-6)
+
+    def make_frame(t):
+        # Start with a clean copy of the background
+        base = background_base.copy()
+        
+        # Create a transparent overlay for the bars
+        overlay = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+        
+        idx = min(int(t * (spectrogram.shape[1] / DURATION)), spectrogram.shape[1] - 1)
+        bar_width = WIDTH // N_BARS
+        
+        for i in range(N_BARS):
+            mag = freq_data[i, idx]
+            bar_height = int(mag * HEIGHT * 0.35)
+            
+            # Define bar coordinates
+            x1, y1 = i * bar_width + 2, HEIGHT - bar_height
+            x2, y2 = (i + 1) * bar_width - 2, HEIGHT
+            
+            # Draw a semi-transparent rectangle
+            draw.rectangle([x1, y1, x2, y2], fill=(255, 255, 255, int(255 * 0.2)))
+        
+        # Composite the overlay onto the background
+        final_img = Image.alpha_composite(base, overlay)
+        
+        # Convert back to RGB numpy array for MoviePy
+        return np.array(final_img.convert("RGB"))
+    
+    # Create the video
+    video_clip = VideoClip(make_frame, duration=DURATION).with_audio(audio_clip).with_fps(FPS)
     video_clip.write_videofile("result.mp4", codec="libx264", audio_codec="aac")
     return True
 
