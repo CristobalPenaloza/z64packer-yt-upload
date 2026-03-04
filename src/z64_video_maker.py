@@ -9,7 +9,7 @@ import requests
 from io import BytesIO
 import textwrap
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
-from moviepy import ImageClip, AudioFileClip
+from moviepy import ImageClip, AudioFileClip, VideoClip
 
 # Variables from workflow
 bold_font = "Montserrat-Bold.ttf"
