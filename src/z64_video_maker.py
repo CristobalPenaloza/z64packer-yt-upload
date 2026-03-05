@@ -83,7 +83,7 @@ def make_video(background_image):
                 # https://github.com/porjo/youtubeuploader?tab=readme-ov-file#metadata
                 with open('metadata.json', 'w') as f:
                     json.dump({
-                        "title": f"{title} (MM Soundfont) | {subtitle}",
+                        "title": f"{title} ({("MM" if song["file"].endswith(".mmrs") else "OoT")} Soundfont) | {subtitle}",
                         "description": f"Song: {title}\n"
                                     f"Game/Source: {subtitle}\n"
                                     f"Composer(s): {composers}\n"
