@@ -21,7 +21,8 @@ headers = {
                   "Chrome/141.0.0.0 Safari/537.36"
 }
 
-# TODO: ADD COMMAND LINE ARGUMENTS FOR VARIABLES, AND FOR CLEANUP AFTER UPLOAD
+def is_uploadable_format(preview):
+    return not preview == "" and not preview.startswith("http") and (preview.endswith(".mp3") or preview.endswith(".ogg"))
 
 def make_video(background_image):
     if not background_image:
@@ -45,7 +46,7 @@ def make_video(background_image):
 
                 # TODO: Make an option to choose the song to upload manually
                 # Find any song with a local preview to upload
-                song = next((s for s in database if s.get("preview", "").endswith(".mp3")), None)
+                song = next((s for s in database if is_uploadable_format(s.get("preview", ""))), None)
                 if(song == None):
                     print("No song found to upload!")
                     return
@@ -302,7 +303,7 @@ def register_video():
                     if not preview_path.startswith("https://"):
                         full_preview_path = "../" + properties["previews"] + preview_path
                         if os.path.exists(full_preview_path):
-                            #os.remove(full_preview_path) TODO: <-- REACTIVATE ON FINAL BUILD!!!
+                            os.remove(full_preview_path)
                             print(f"File {full_preview_path} deleted successfully!")
 
                     # Set the new preview
