@@ -33,15 +33,15 @@ def make_video(background_image):
     if not os.path.exists(propertiesPath):
         raise Exception('Missing z64musicpacker.properties file: This is not an Z64 repository or the script is not beign executed in the z64packer folder!')
         
-    with open(propertiesPath, encoding='ISO-8859-1') as propertiesFile:
+    with open(propertiesPath, encoding='utf-8') as propertiesFile:
         properties = json.load(propertiesFile)
 
         # Open the games database, for metadata purposes
-        with open('z64games.json', 'r+', encoding='ISO-8859-1') as gamesFile:
+        with open('z64games.json', 'r+', encoding='utf-8') as gamesFile:
             games = json.load(gamesFile)
 
             # Open the database, to find an available song to upload
-            with open('z64songs.json', 'r+', encoding='ISO-8859-1') as databaseFile:
+            with open('z64songs.json', 'r+', encoding='utf-8') as databaseFile:
                 database = json.load(databaseFile)
 
                 # TODO: Make an option to choose the song to upload manually
@@ -280,19 +280,19 @@ def register_video():
         raise Exception('Missing data files: Run MAKE_VIDEO before trying to register!')
 
     # First, read if we have a YT link and a UUID to register!
-    with open(metadata_out_path, encoding='ISO-8859-1') as meta_out_file:
+    with open(metadata_out_path, encoding='utf-8') as meta_out_file:
         meta_out = json.load(meta_out_file)
 
-        with open(song_uuid_path, encoding='ISO-8859-1') as song_uuid_file:
+        with open(song_uuid_path, encoding='utf-8') as song_uuid_file:
             song_uuid = song_uuid_file.read()
             yt_link = f"https://www.youtube.com/watch?v={meta_out["id"]}"
             print(f"Registering video {yt_link} for song {song_uuid}")
 
-            with open("z64musicpacker.properties", encoding='ISO-8859-1') as propertiesFile:
+            with open("z64musicpacker.properties", encoding='utf-8') as propertiesFile:
                 properties = json.load(propertiesFile)
 
                 # Now that we have our song ready, open the database
-                with open('z64songs.json', 'r+', encoding='ISO-8859-1') as databaseFile:
+                with open('z64songs.json', 'r+', encoding='utf-8') as databaseFile:
                     database = json.load(databaseFile)
 
                     # Find the song by uuid
