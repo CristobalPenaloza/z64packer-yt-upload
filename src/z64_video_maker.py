@@ -91,7 +91,7 @@ def make_video(background_image):
                                     f"Format: {format}\n"
                                     "\n"
                                     "Created to work in Oot and MM randomizers.\n"
-                                    "Song packer: https://cristobalpenaloza.github.io/z64_song_packer.html",
+                                    "Song packer: https://z64songpacker.github.io",
                         "privacyStatus": "public",
                         "madeForKids": False,
                         "embeddable": True,
