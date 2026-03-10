@@ -230,6 +230,7 @@ def normalize_youtube_audio(path):
     # Load audio
     # Load from bytes
     data, sr = sf.read(path)
+    file_format = "mp3" if path.lower().endswith(".mp3") else "ogg"
 
     # Ensure float32 array
     if data.dtype != np.float32:
@@ -262,7 +263,7 @@ def normalize_youtube_audio(path):
 
     # Export back to bytes (WAV)
     buf = BytesIO()
-    sf.write(buf, normalized, sr, format='mp3')
+    sf.write(buf, normalized, sr, format=file_format)
     with open("vid_audio.mp3", "wb") as fh:
         fh.write(buf.getvalue())
     return "vid_audio.mp3"
