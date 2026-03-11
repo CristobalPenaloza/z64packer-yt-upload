@@ -10,6 +10,10 @@ from io import BytesIO
 import textwrap
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from moviepy import ImageClip, AudioFileClip, VideoClip
+import faulthandler
+
+# Enable error line report
+faulthandler.enable()
 
 # Variables from workflow
 bold_font = "Montserrat-Bold.ttf"
@@ -321,6 +325,7 @@ def register_video():
     
 
 if __name__ == '__main__':
+    print("RUNNING Z64 YT UPLOAD!")
     parser = argparse.ArgumentParser(
         description="Makes and manage preview videos for Z64 repositories."
     )
@@ -331,6 +336,7 @@ if __name__ == '__main__':
     mode = args.mode
     background_image = args.background_image
 
+    print(f"Running script on {mode} mode")
     if mode == "MAKE_VIDEO": make_video(background_image)
     else: register_video()
     
