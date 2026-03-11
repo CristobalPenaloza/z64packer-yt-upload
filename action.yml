@@ -49,7 +49,7 @@ runs:
       run: |
         echo "Creating and uploading video..."
         cd z64packer
-        python z64_video_maker.py --background_image $BACKGROUND_IMAGE
+        python z64_video_maker.py --ci --background_image $BACKGROUND_IMAGE
         youtubeuploader -debug -filename "result.mp4" -metaJSON "metadata.json" -metaJSONout "metadata_out.json"
         python z64_video_maker.py --mode "REGISTER_VIDEO"
         cd ..
