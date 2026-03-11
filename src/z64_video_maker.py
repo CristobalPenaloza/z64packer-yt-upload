@@ -10,6 +10,7 @@ from io import BytesIO
 import textwrap
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from moviepy import ImageClip, AudioFileClip, VideoClip
+from pydub import AudioSegment
 import faulthandler
 
 # Enable error line report
@@ -179,6 +180,13 @@ def create_thumbnail(title, subtitle, background_image, logo_url):
     return True
 
 def create_video(audio_path):
+
+    # If we are using an ogg file, then transform it to mp3 first 
+    if audio_path.lower().endswith(".ogg"):
+        AudioSegment.from_file(audio_path).export("vid_audio.mp3", format="mp3")
+        audio_path = "vid_audio.mp3"
+
+    # Normalize audio
     normalized_audio = normalize_youtube_audio(audio_path)
     audio_clip = AudioFileClip(normalized_audio)
     background_base = Image.open("result.png").convert("RGBA")
@@ -234,8 +242,7 @@ def normalize_youtube_audio(path):
     # Load audio
     # Load from bytes
     data, sr = sf.read(path)
-    file_format = "mp3" if path.lower().endswith(".mp3") else "ogg"
-
+    
     # Ensure float32 array
     if data.dtype != np.float32:
         data = data.astype(np.float32)
@@ -267,7 +274,7 @@ def normalize_youtube_audio(path):
 
     # Export back to bytes (WAV)
     buf = BytesIO()
-    sf.write(buf, normalized, sr, format=file_format)
+    sf.write(buf, normalized, sr, format="mp3")
     with open("vid_audio.mp3", "wb") as fh:
         fh.write(buf.getvalue())
     return "vid_audio.mp3"
@@ -321,8 +328,6 @@ def register_video():
                     databaseFile.truncate()
 
     print("Video registered successfully!")
-    
-    
 
 if __name__ == '__main__':
     print("RUNNING Z64 YT UPLOAD!")
@@ -331,7 +336,7 @@ if __name__ == '__main__':
     )
     parser.add_argument("--mode", choices=["MAKE_VIDEO", "REGISTER_VIDEO"], default="MAKE_VIDEO", help="Defines the mode the script will work.")
     parser.add_argument("--background_image", type=str, help="Path or url to an image to use as a background for the video.")
-    args, unknown = parser.parse_known_args()
+    args = parser.parse_args()
 
     mode = args.mode
     background_image = args.background_image
