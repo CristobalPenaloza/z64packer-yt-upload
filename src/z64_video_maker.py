@@ -331,7 +331,7 @@ if __name__ == '__main__':
     )
     parser.add_argument("--mode", choices=["MAKE_VIDEO", "REGISTER_VIDEO"], default="MAKE_VIDEO", help="Defines the mode the script will work.")
     parser.add_argument("--background_image", type=str, help="Path or url to an image to use as a background for the video.")
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     mode = args.mode
     background_image = args.background_image
