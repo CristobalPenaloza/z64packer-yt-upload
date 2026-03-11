@@ -22,6 +22,9 @@ runs:
       with:
         client_secrets: ${{ inputs.yt_client_secrets }}
         request_token: ${{ inputs.yt_request_token }}
+
+    - name: Setup FFmpeg
+      uses: FedericoCarboni/setup-ffmpeg@v3
   
     - name: Checkout current branch
       uses: actions/checkout@v6
