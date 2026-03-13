@@ -51,7 +51,7 @@ def make_video(background_image):
 
                 # TODO: Make an option to choose the song to upload manually
                 # Find any song with a local preview to upload
-                song = next((s for s in database if is_uploadable_format(s.get("preview", ""))), None)
+                song = next((s for s in database if isinstance(s, dict) and is_uploadable_format(s.get("preview", ""))), None)
                 if(song == None):
                     print("No song found to upload!")
                     return
@@ -308,7 +308,7 @@ def register_video():
                     database = json.load(databaseFile)
 
                     # Find the song by uuid
-                    i = [index for index, song in enumerate(database) if song["uuid"] == song_uuid][0]
+                    i = [index for index, song in enumerate(database) if isinstance(song, dict) and song["uuid"] == song_uuid][0]
                     preview_path = database[i]["preview"]
 
                     # Delete the current preview
